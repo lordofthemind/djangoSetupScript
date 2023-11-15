@@ -1,6 +1,3 @@
-
----
-
 # Django Project Setup Script
 
 ## Introduction
