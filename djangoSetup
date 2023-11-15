@@ -1,0 +1,210 @@
+#!/bin/bash
+
+# Global variable
+projectDirectory=""
+
+# Check if the project name is provided
+projectName() {
+    project_name="$1"
+
+    if [ -z "$project_name" ]; then
+        echo "Usage: $0 <project_name>"
+        exit 1
+    fi
+}
+
+# Function to check if Python is installed
+checkPython() {
+    if command -v python3 &> /dev/null; then
+        echo "Python is installed. Proceeding with the script."
+    else
+        echo "Error: Python is not installed. Please install Python and run the script again."
+        exit 1
+    fi
+}
+
+# Function to install pipenv
+installPipenv() {
+    if command -v pipenv &> /dev/null; then
+        echo "pipenv is installed. Proceeding with the script."
+    else
+        echo "pipenv is not installed. Attempting to install with sudo..."
+
+        if command -v sudo &> /dev/null; then
+            sudo apt install pipenv
+        else
+            echo "Error: sudo command not found. Please install pipenv manually."
+            exit 1
+        fi
+
+        if [ $? -eq 0 ]; then
+            echo "pipenv installed successfully. Proceeding with the script."
+        else
+            echo "Error: Failed to install pipenv. Please install pipenv manually."
+            exit 1
+        fi
+    fi
+}
+
+# Function to create Django project
+createDjangoProject() {
+    
+    # Create and change to the project directory
+    mkdir "$project_name" || exit 1
+    cd "$project_name" || exit 1
+
+    # Project Directory
+    projectDirectory=$(pwd)
+
+    # Use command substitution to get the Python version without extra information
+    python_version=$(python3 -c 'import sys; print(".".join(map(str, sys.version_info[:3])))')
+    echo "Using Python version: $python_version"
+
+    # Set up a virtual environment using pipenv
+    pipenv --python "$python_version"
+
+    # Array of Packages
+    declare -a PkgStringArray=("Django")
+
+    # Iterate through the packages and install
+    for val in "${PkgStringArray[@]}"; do
+        echo "Installing $val"
+        pipenv run pipenv install $val
+        echo "Done installing $val"
+    done
+
+    # Create a Django project within the virtual environment using pipenv run
+    pipenv run django-admin startproject "$project_name" .
+}
+
+# Function to create views for an app
+createView() {
+    if [ -z "$1" ]; then
+        echo "Usage: createView <appName>"
+        return 1
+    fi
+
+    appName=$1
+    viewsFile="${appName}/views.py"
+
+    declare -a viewStringArray=("from django.http import HttpResponse"
+                                ""
+                                ""
+                                "def ${appName}index(request):"
+                                "    return HttpResponse('Hello, index page for app ${appName} is ready.')")
+
+    for val in "${viewStringArray[@]}"; do
+        echo "$val" >> "$viewsFile"
+    done
+    echo "View created for $appName"
+}
+
+# Function to create URLs for an app
+createUrl() {
+    if [ -z "$1" ]; then
+        echo "Usage: createUrl <appName>"
+        return 1
+    fi
+
+    appName=$1
+    urlFile="${appName}/urls.py"
+
+    declare -a urlStringArray=("from django.urls import path"
+                               "from .views import *"
+                               ""
+                               ""
+                               "urlpatterns = ["
+                               "    path('', ${appName}index, name='${appName}index'),"
+                               "]")
+
+    for val in "${urlStringArray[@]}"; do
+        echo "$val" >> "$urlFile"
+    done
+    echo "URL file created for $appName"
+}
+
+# Function to update project URLs
+updateProjectUrl() {
+    if [ -z "$1" ]; then
+        echo "Usage: updtPrjUrl <appName>"
+        return 1
+    fi
+
+    appName=$1
+    prjUrlFile="${projectDirectory}/${project_name}/urls.py"
+
+    # Check if the project directory and urls.py file exist
+    if [ ! -d "$project_name" ] || [ ! -f "$prjUrlFile" ]; then
+        echo "Error: Project directory or urls.py file not found."
+        return 1
+    fi
+
+    appendImportText=", include"
+    ImportLineNumber=18
+    sed -i "${ImportLineNumber}s/$/${appendImportText}/" "$prjUrlFile"
+
+    addUrlText="\tpath('', include('${appName}.urls')),"
+    urlLineNumber=21
+    sed -i "${urlLineNumber}i\\${addUrlText}" "$prjUrlFile"
+
+    echo "URL updated for $appName in project $project_name"
+}
+
+# Function to update project settings
+updateProjectSetting() {
+    
+    appName="$1"
+    prjStngFile="${projectDirectory}/${project_name}/settings.py"
+
+    addAppText="\t'${appName}',"
+    ImportLineNumber=34
+
+    sed -i "${ImportLineNumber}i\\${addAppText}" "$prjStngFile"
+}
+
+# Function to create Django apps
+createDjangoApps() {
+    # Declare an empty array
+    declare -a AppStringArray=()
+
+    # Get input from the user
+    echo "Enter a list of Apps separated by space"
+    read -a AppStringArray
+
+    # Print the array
+    for appVal in "${AppStringArray[@]}"; do
+        echo "$appVal app is being created."
+        pipenv run django-admin startapp $appVal
+        echo "$appVal app had been created."
+        createView $appVal
+        createUrl $appVal
+        updateProjectUrl $appVal
+        updateProjectSetting $appVal
+    done
+}
+
+# Function to activate the virtual environment and run the server
+activateAndRunServer() {
+    # Activate the virtual environment
+    pipenv run python manage.py runserver
+}
+
+# Main script
+
+# Check if Project name is provided
+projectName "$1"
+
+# Check if Python is installed
+checkPython
+
+# Install pipenv
+installPipenv
+
+# Create Django project
+createDjangoProject "$1"
+
+# Create Django apps
+createDjangoApps
+
+# Activate the virtual environment and run the server
+activateAndRunServer
