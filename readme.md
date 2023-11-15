@@ -20,14 +20,14 @@ Before running the script, ensure the following prerequisites are met:
 1. **Clone the Repository**:
 
    ```bash
-   git clone https://github.com/your-username/your-repo.git
+   git clone https://github.com/lordofthemind/djangoSetupScript.git
    cd your-repo
    ```
 
 2. **Run the Script**:
 
    ```bash
-   ./setup_django_project.sh <project_name>
+   ./djangoSetup <project_name>
    ```
 
    Replace `<project_name>` with the desired name for your Django project.
@@ -50,7 +50,7 @@ Before running the script, ensure the following prerequisites are met:
   chmod +x setup_django_project.sh
   ```
 
-- For any issues or additional information, refer to the [Issues](https://github.com/your-username/your-repo/issues) section of the repository.
+- For any issues or additional information, refer to the [Issues](https://github.com/lordofthemind/djangoSetupScript.git) section of the repository.
 
 ## Contributing
 
