@@ -1,0 +1,9 @@
+#!/bin/bash
+# Gives executable permission to a file and copies it to /usr/local/bin
+chmod +x $1
+
+echo "File $1 is now executable."
+
+sudo cp $1 /usr/local/bin/
+
+echo "File $1 is now in /usr/local/bin"
