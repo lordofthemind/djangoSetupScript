@@ -1,9 +1,54 @@
 #!/bin/bash
-# Gives executable permission to a file and copies it to /usr/local/bin
-chmod +x $1
 
-echo "File $1 is now executable."
+# Constants
+DESTINATION="/usr/local/bin"
 
-sudo cp $1 /usr/local/bin/
+# Function to check if an argument is provided
+checkArgument() {
+    if [ -z "$1" ]; then
+        echo "Usage: $0 <file>"
+        exit 1
+    fi
+}
 
-echo "File $1 is now in /usr/local/bin"
+# Function to check if the file exists
+checkFileExistence() {
+    if [ ! -f "$1" ]; then
+        echo "Error: File not found."
+        exit 1
+    fi
+}
+
+# Function to give executable permission
+makeExecutable() {
+    chmod +x "$1"
+    if [ $? -ne 0 ]; then
+        echo "Error: Unable to make $1 executable."
+        exit 1
+    fi
+    echo "File $1 is now executable."
+}
+
+# Function to copy the file to /usr/local/bin
+copyToBin() {
+    sudo cp i "$1" "$DESTINATION/"
+    if [ $? -ne 0 ]; then
+        echo "Error: Unable to copy $1 to $DESTINATION."
+        exit 1
+    fi
+    echo "File $1 is now in $DESTINATION."
+}
+
+# Main script
+
+# Check if an argument is provided
+checkArgument "$1"
+
+# Check if the file exists
+checkFileExistence "$1"
+
+# Give executable permission
+makeExecutable "$1"
+
+# Copy the file to /usr/local/bin
+copyToBin "$1"
