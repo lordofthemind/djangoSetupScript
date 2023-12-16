@@ -84,19 +84,19 @@ Before running the script, ensure the following prerequisites are met:
 2. **Add the script to the local bin(optional)**:
 
    ```bash
-   rgcc djangoSetup
+   $./rgcc ./sudj
    ```
 
 3. **Run the Script**:
 
    ```bash
-   ./djangoSetup <project_name>
+   ./sudj <project_name>
    ```
 
    From same directory (If not executed second step.)
 
    ```bash
-   djangoSetup <project_name>
+   sudj <project_name>
    ```
 
    From anywhere in filesystem
@@ -118,13 +118,13 @@ Before running the script, ensure the following prerequisites are met:
 - Ensure that the script has executable permissions:
 
   ```bash
-  chmod +x djangoSetup
+  chmod +x sudj
   ```
 
 - Else script can be added to local binary file by rgcc command
 
   ```bash
-  rgcc djangoSetup
+  rgcc sudj
   ```
 
 - For any issues or additional information, refer to the [Issues](https://github.com/lordofthemind/djangoSetupScript.git) section of the repository.
