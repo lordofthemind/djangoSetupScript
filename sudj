@@ -200,7 +200,11 @@ createDjangoApps() {
 
 # Function to activate the virtual environment and run the server
 activateAndRunServer() {
-    # Activate the virtual environment
+
+    pipenv run python manage.py migrate
+
+    # pipenv run python manage.py createsuperuser
+
     pipenv run python manage.py runserver
 }
 
