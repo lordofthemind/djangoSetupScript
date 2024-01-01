@@ -216,16 +216,52 @@ addSeedFaker(){
     # Iterate through the packages and install
     for val in "${SeedPkgStringArray[@]}"; do
         echo "Installing $val"
-        if ! pipenv run pipenv install $val; then
-            echo "Error: Failed to install $val"
-            return 1
-        fi
+
+        installPackage $val
+
         echo "Done installing $val"
     done
 
     updateProjectSetting django_seed
 
 }
+
+# Function to add support for Schema Graph
+addSchemaGraph() {
+    # Install package
+    installPackage django-schema-graph
+
+    # Update project setting for schema_graph
+    updateProjectSetting schema_graph
+
+    # Define paths
+    projectDirectory="${PWD}"
+    prjUrlFileForSchema="${projectDirectory}/${project_name}/urls.py"
+
+    # Add import statement for Schema in urls.py
+    sed -i "/import path, include/ a from schema_graph.views import Schema" "$prjUrlFileForSchema"
+    echo "Import statement added in $prjUrlFileForSchema"
+
+    # Add URL pattern for Schema view
+    addUrlText="\tpath('schema/', Schema.as_view()),"
+    urlLineNumber=$(awk '/path\(/ && /schema\//' "$prjUrlFileForSchema" | sed -n 's/:.*//p')
+    
+    if [ -z "$urlLineNumber" ]; then
+        echo "Error: Unable to find line number for URL pattern in $prjUrlFileForSchema"
+        return 1
+    fi
+    
+    if grep -q "Schema.as_view()" "$prjUrlFileForSchema"; then
+        echo "URL pattern already exists in $prjUrlFileForSchema"
+    else
+    sed -i "/urlpatterns = [/ a from schema_graph.views import Schema" "$prjUrlFileForSchema"
+        sed -i "${urlLineNumber}i\\${addUrlText}" "$prjUrlFileForSchema"
+        echo "URL pattern added in $prjUrlFileForSchema"
+    fi
+
+    echo "Schema URL updated for project $project_name"
+}
+
 
 # Function to activate the virtual environment and run the server
 activateAndRunServer() {
@@ -258,6 +294,9 @@ createDjangoApps
 
 # django seed faker
 addSeedFaker
+
+# Schema Graph
+addSchemaGraph
 
 # Activate the virtual environment and run the server
 activateAndRunServer

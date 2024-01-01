@@ -216,14 +216,45 @@ addSeedFaker(){
     # Iterate through the packages and install
     for val in "${SeedPkgStringArray[@]}"; do
         echo "Installing $val"
-        if ! pipenv run pipenv install $val; then
-            echo "Error: Failed to install $val"
-            return 1
-        fi
+
+        installPackage $val
+
         echo "Done installing $val"
     done
 
     updateProjectSetting django_seed
+
+}
+
+# Function to add support for Schema Graph
+addSchemaGraph(){
+
+    # Install package
+    installPackage django-schema-graph
+
+    updateProjectSetting schema_graph
+
+    prjUrlFileForSchema="${projectDirectory}/${project_name}/urls.py"
+
+    # Check if the project directory and urls.py file exist
+    if [ ! -d "$project_name" ] || [ ! -f "$prjUrlFileForSchema" ]; then
+        echo "Error: Project directory or urls.py file not found."
+        return 1
+    fi
+
+    if [ -f "$prjUrlFileForSchema" ]; then
+        # Use sed to find the line with "include" and add the new line after it
+        sed -i "/import path, include/ a from schema_graph.views import Schema" "$prjUrlFileForSchema"
+        echo "Line added after 'include' in $prjUrlFileForSchema"
+    else
+        echo "Error: Python file not found."
+    fi
+
+    addUrlText="\tpath('schema/', Schema.as_view()),"
+    urlLineNumber=24
+    sed -i "${urlLineNumber}i\\${addUrlText}" "$prjUrlFileForSchema"
+
+    echo "Schema URL updated for in project $project_name"
 
 }
 
@@ -258,6 +289,9 @@ createDjangoApps
 
 # django seed faker
 addSeedFaker
+
+# Schema Graph
+addSchemaGraph
 
 # Activate the virtual environment and run the server
 activateAndRunServer
