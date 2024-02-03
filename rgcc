@@ -29,14 +29,15 @@ makeExecutable() {
     echo "File $1 is now executable."
 }
 
-# Function to copy the file to /usr/local/bin
+# Function to copy the file to the specified directory
 copyToBin() {
-    sudo cp i "$1" "$DESTINATION/"
+    local filename=$(basename "$1")
+    sudo cp "$1" "$2/$filename"
     if [ $? -ne 0 ]; then
-        echo "Error: Unable to copy $1 to $DESTINATION."
+        echo "Error: Unable to copy $1 to $2."
         exit 1
     fi
-    echo "File $1 is now in $DESTINATION."
+    echo "File $1 is now in $2."
 }
 
 # Main script
@@ -50,5 +51,5 @@ checkFileExistence "$1"
 # Give executable permission
 makeExecutable "$1"
 
-# Copy the file to /usr/local/bin
-copyToBin "$1"
+# Copy the file to the specified directory
+copyToBin "$1" "$DESTINATION"
